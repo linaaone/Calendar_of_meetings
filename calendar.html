@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Календарь встреч💅🥂</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    :root {
+      --bg: #f6f7fb;
+      --bg-card: #ffffff;
+      --text: #1f2937;
+      --text-muted: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
+      --free: #16a34a;
+      --busy: #ef4444;
+      --maybe: #f59e0b;
+      --blue: #60a5fa;
+      --pink: #ec4899;
+      --yellow: #facc15;
+      --violet: #8b5cf6;
+      --orange: #f97316;
+      --today-outline: #4f46e5;
+      --today-bg: #eef2ff;
+      --day-bg: #ffffff;
+      --day-hover: #f8fafc;
+      --selected-outline: #4f46e5;
+      --btn-bg: #ffffff;
+      --btn-text: #1f2937;
+      --primary-bg: linear-gradient(135deg, #4f46e5, #7c3aed);
+      --primary-text: #ffffff;
+      --danger-bg: #fff1f2;
+      --danger-border: #fecdd3;
+      --danger-text: #9f1239;
+      --soft-bg: #f9fafb;
+      --modal-overlay: rgba(0,0,0,0.4);
+      --event-bg: #ede9fe;
+      --event-border: #c4b5fd;
+      --select-mode-bg: rgba(79, 70, 229, 0.08);
+    }
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      --day-bg: #1e293b;
+      --day-hover: #2d3a4f;
+      --today-outline: #818cf8;
+      --today-bg: #2d3a4f;
+      --selected-outline: #818cf8;
+      --btn-bg: #2d3a4f;
+      --btn-text: #f1f5f9;
+      --primary-bg: linear-gradient(135deg, #6366f1, #8b5cf6);
+      --primary-text: #ffffff;
+      --danger-bg: #7f1d1d;
+      --danger-border: #991b1b;
+      --danger-text: #fca5a5;
+      --soft-bg: #2d3a4f;
+      --modal-overlay: rgba(0,0,0,0.6);
+      --event-bg: #2d3a4f;
+      --event-border: #4f46e5;
+      --select-mode-bg: rgba(99, 102, 241, 0.15);
+    }
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 26px;
+    }
+    .sub {
+      margin-top: 6px;
+      color: var(--text-muted);
+      max-width: 900px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+    .header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .theme-toggle {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px;
+      box-shadow: var(--shadow);
+    }
+    .theme-toggle button {
+      border: none;
+      background: transparent;
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: 0.2s ease;
+    }
+    .theme-toggle button.active {
+      background: var(--primary-bg);
+      color: #fff;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 18px;
+      margin-top: 14px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      transition: background 0.3s ease, border 0.3s ease;
+    }
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .section-title h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .field {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    input,
+    select,
+    button,
+    textarea {
+      font: inherit;
+    }
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--day-bg);
+      color: var(--text);
+      outline: none;
+      transition: 0.2s ease;
+    }
+    textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #a5b4fc;
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.08);
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.15s ease;
+      font-size: 14px;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: #c7d2fe;
+    }
+    .btn.primary {
+      background: var(--primary-bg);
+      color: var(--primary-text);
+      border-color: transparent;
+      padding: 12px 20px;
+      font-size: 16px;
+      width: 100%;
+    }
+    .btn.soft {
+      background: var(--soft-bg);
+    }
+    .btn.danger {
+      background: var(--danger-bg);
+      border-color: var(--danger-border);
+      color: var(--danger-text);
+    }
+    .btn.success {
+      background: #dcfce7;
+      border-color: #86efac;
+      color: #166534;
+    }
+    [data-theme="dark"] .btn.success {
+      background: #1a3a2a;
+      border-color: #2d7a4a;
+      color: #86efac;
+    }
+    .btn.small-export {
+      padding: 5px 12px;
+      font-size: 11px;
+    }
+    .btn.undo-redo {
+      padding: 5px 10px;
+      font-size: 16px;
+      background: var(--soft-bg);
+      border-radius: 999px;
+      min-width: 34px;
+    }
+    .btn-sm {
+      padding: 6px 16px;
+      font-size: 13px;
+    }
+    .btn.active-mode {
+      background: var(--primary-bg);
+      color: #fff;
+      border-color: transparent;
+      animation: pulse-mode 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-mode {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(79, 70, 229, 0); }
+    }
+    .top-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .undo-group {
+      display: flex;
+      gap: 6px;
+    }
+    .calendar-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .month-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .nav {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+    .dow {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 4px 0;
+    }
+    .day {
+      min-height: 100px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--day-bg);
+      padding: 8px;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+      transition: background 0.2s ease, border 0.2s ease;
+    }
+    .day:hover {
+      background: var(--day-hover);
+    }
+    .day.selectable {
+      cursor: pointer;
+    }
+    .day.selectable:hover {
+      background: var(--select-mode-bg);
+      border-color: #818cf8;
+    }
+    .day.muted {
+      opacity: 0.38;
+      background: var(--soft-bg);
+    }
+    .day.past {
+      opacity: 0.4;
+      background: var(--soft-bg);
+      cursor: not-allowed;
+    }
+    .day.selected {
+      outline: 3px solid var(--selected-outline);
+      outline-offset: -2px;
+    }
+    .day.today {
+      outline: 3px solid var(--today-outline);
+      outline-offset: -2px;
+      background: var(--today-bg);
+    }
+    .day.range-start {
+      outline: 3px solid var(--selected-outline);
+    }
+    .day.range-end {
+      outline: 3px solid #7c3aed;
+    }
+    .day.range-middle {
+      background: var(--today-bg);
+    }
+    .day.free-highlight {
+      background: #dcfce7;
+      border-color: #86efac;
+    }
+    [data-theme="dark"] .day.free-highlight {
+      background: #1a3a2a;
+      border-color: #2d7a4a;
+    }
+    .day.maybe-highlight {
+      background: #fef3c7;
+      border-color: #fcd34d;
+    }
+    [data-theme="dark"] .day.maybe-highlight {
+      background: #3d3a1a;
+      border-color: #b8962a;
+    }
+    .day.has-event {
+      border-color: #818cf8;
+    }
+    [data-theme="dark"] .day.has-event {
+      border-color: #a5b4fc;
+    }
+    .day.select-mode-highlight {
+      background: var(--select-mode-bg);
+      border-color: #818cf8;
+    }
+    .date-num {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .day.today .date-num {
+      font-weight: 800;
+      font-size: 18px;
+      color: var(--today-outline);
+    }
+    .mini {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 80px;
+      overflow: auto;
+    }
+    .tag {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      border-radius: 8px;
+      padding: 4px 8px;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .tag small {
+      font-weight: 700;
+      opacity: 0.95;
+    }
+    .tag.занято {
+      box-shadow: inset 0 0 0 999px rgba(239, 68, 68, 0.25);
+    }
+    .tag.свободно {
+      box-shadow: inset 0 0 0 999px rgba(22, 163, 74, 0.25);
+    }
+    .tag.под-вопросом {
+      box-shadow: inset 0 0 0 999px rgba(245, 158, 11, 0.25);
+    }
+    .tag.event {
+      background: #4f46e5;
+      box-shadow: none;
+    }
+    [data-theme="dark"] .tag.event {
+      background: #6366f1;
+    }
+    .status-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      align-items: end;
+    }
+    .free-list {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .free-day {
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    [data-theme="dark"] .free-day {
+      background: #1a2a4a;
+      border-color: #3d6a9a;
+      color: #93bbfc;
+    }
+    .muted {
+      color: var(--text-muted);
+    }
+    .small {
+      font-size: 12px;
+    }
+    .date-mode-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .date-mode-selector .btn {
+      padding: 6px 14px;
+      font-size: 13px;
+    }
+    .date-mode-selector .btn.active {
+      background: var(--primary-bg);
+      color: #fff;
+      border-color: transparent;
+    }
+    .bottom-panel {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    .bottom-panel .field {
+      margin-bottom: 0;
+    }
+    .clear-all-wrap {
+      margin-top: 12px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .events-list {
+      max-height: 200px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .event-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--event-bg);
+      border: 1px solid var(--event-border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .event-item .event-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .event-item .event-title {
+      font-weight: 700;
+      color: var(--text);
+    }
+    .event-item .event-details {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .event-item .event-delete {
+      background: none;
+      border: none;
+      color: var(--danger-text);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 4px;
+    }
+    .event-item .event-delete:hover {
+      transform: scale(1.1);
+    }
+    .empty-events {
+      color: var(--text-muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--modal-overlay);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 30px;
+      max-width: 480px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    .modal h3 {
+      font-size: 20px;
+      margin-bottom: 6px;
+    }
+    .modal .modal-date {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+    .modal .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .modal .btn-group .btn {
+      flex: 1;
+      text-align: center;
+      justify-content: center;
+    }
+
+    .mode-indicator {
+      display: inline-block;
+      background: var(--primary-bg);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    /* Mobile */
+    @media (max-width: 1024px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      .bottom-panel {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    @media (max-width: 600px) {
+      .wrap {
+        padding: 10px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      .sub {
+        font-size: 12px;
+      }
+      .card {
+        padding: 12px;
+        border-radius: 14px;
+      }
+      .grid {
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .day {
+        min-height: 80px;
+        padding: 6px;
+        border-radius: 10px;
+      }
+      .date-num {
+        font-size: 14px;
+      }
+      .day.today .date-num {
+        font-size: 16px;
+      }
+      .calendar {
+        gap: 5px;
+      }
+      .dow {
+        font-size: 10px;
+        padding: 3px 0;
+      }
+      .btn {
+        font-size: 12px;
+        padding: 8px 12px;
+      }
+      .btn.primary {
+        font-size: 14px;
+        padding: 10px 16px;
+      }
+      .tag {
+        font-size: 9px;
+        padding: 3px 6px;
+      }
+      .month-title {
+        font-size: 16px;
+      }
+      .row {
+        grid-template-columns: 1fr;
+      }
+      .header-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      .theme-toggle {
+        align-self: flex-start;
+      }
+      .top-controls {
+        flex-wrap: wrap;
+      }
+      .undo-group {
+        margin-left: auto;
+      }
+      .free-day {
+        font-size: 11px;
+        padding: 4px 10px;
+      }
+      .bottom-panel {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        padding-top: 12px;
+        margin-top: 12px;
+      }
+      .modal {
+        padding: 20px;
+      }
+      .event-item {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+    }
+    @media (max-width: 400px) {
+      .day {
+        min-height: 65px;
+        padding: 4px;
+      }
+      .date-num {
+        font-size: 12px;
+      }
+      .day.today .date-num {
+        font-size: 14px;
+      }
+      .calendar {
+        gap: 4px;
+      }
+      .mini {
+        max-height: 55px;
+        gap: 3px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header-row">
+      <div>
+        <h1>Календарь встреч💅🥂</h1>
+        <div class="sub">Выберите участника, дату или диапазон, статус и нажмите «Выбрать».</div>
+      </div>
+      <div class="theme-toggle">
+        <button id="lightThemeBtn" class="active">☀️</button>
+        <button id="darkThemeBtn">🌙</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="top-controls">
+          <div class="section-title" style="margin-bottom:0;">
+            <h2>Управление</h2>
+          </div>
+          <div class="undo-group">
+            <button class="btn undo-redo" id="undoBtn" title="Назад">←</button>
+            <button class="btn undo-redo" id="redoBtn" title="Вперед">→</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="nameInput">Выбранное имя</label>
+          <select id="nameInput">
+            <option value="Алина">Алина</option>
+            <option value="Катя">Катя</option>
+            <option value="Женя">Женя</option>
+            <option value="Маша">Маша</option>
+            <option value="Алсу">Алсу</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Дата / Диапазон</label>
+          <div class="date-mode-selector">
+            <button class="btn active" data-mode="date" id="dateModeBtn">Дата</button>
+            <button class="btn" data-mode="range" id="rangeModeBtn">Диапазон</button>
+          </div>
+          <div class="row">
+            <input id="dateInput" type="date" />
+            <input id="dateToInput" type="date" disabled />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Статус</label>
+          <div class="status-row">
+            <select id="statusInput">
+              <option value="занято">занято</option>
+              <option value="свободно">свободно</option>
+              <option value="под вопросом">под вопросом</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btns" style="flex-direction:column;">
+          <button class="btn primary" id="selectBtn">Выбрать</button>
+          <button class="btn soft" id="showFreeBtn" style="width:100%;">Посмотреть свободные дни</button>
+        </div>
+
+        <div class="btns" style="margin-top:10px; gap:8px;">
+          <button class="btn success" id="addEventModeBtn" style="flex:1;">📌 Добавить событие</button>
+          <button class="btn danger" id="clearSelection" style="flex:1;">Очистить выбор</button>
+        </div>
+
+        <div id="modeIndicator" style="display:none; margin-top:8px; text-align:center;">
+          <span class="mode-indicator">🔵 Режим добавления события — кликните по дате в календаре</span>
+        </div>
+
+        <div class="field" style="margin-top:14px;">
+          <label>Экспорт</label>
+          <div class="btns">
+            <button class="btn small-export" id="exportCSV">CSV</button>
+            <button class="btn small-export" id="exportJSON">JSON</button>
+          </div>
+        </div>
+
+        <div class="clear-all-wrap">
+          <button class="btn danger" id="clearAll" style="width:100%;">Очистить всё</button>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:18px;">
+          <div class="calendar-head">
+            <div>
+              <div class="month-title" id="monthTitle"></div>
+              <div class="muted small" id="calendarHint">Клик по дате для выбора</div>
+            </div>
+            <div class="nav">
+              <button class="btn" id="prevMonth">←</button>
+              <button class="btn" id="nextMonth">→</button>
+            </div>
+          </div>
+
+          <div class="calendar" id="dow"></div>
+          <div class="calendar" id="calendar"></div>
+        </div>
+
+        <div class="card bottom-panel" id="bottomPanel">
+          <div class="field">
+            <label>Свободные дни для всех выбранных участников</label>
+            <div class="free-list" id="freeList"></div>
+          </div>
+          <div class="field">
+            <label>Дни под вопросом</label>
+            <div class="free-list" id="maybeList"></div>
+          </div>
+          <div class="field">
+            <label>📌 Все события</label>
+            <div class="events-list" id="eventsList">
+              <div class="empty-events">Нет добавленных событий</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for adding event -->
+  <div class="modal-overlay" id="eventModal">
+    <div class="modal">
+      <h3>📌 Добавить событие</h3>
+      <div class="modal-date" id="modalDate">Дата: </div>
+
+      <div class="field">
+        <label for="eventTitleInput">Название события</label>
+        <input id="eventTitleInput" placeholder="Введите название события..." />
+      </div>
+
+      <div class="field">
+        <label for="eventTimeInput">Время</label>
+        <input id="eventTimeInput" type="time" />
+      </div>
+
+      <div class="field">
+        <label for="eventCommentInput">Комментарий</label>
+        <textarea id="eventCommentInput" placeholder="Дополнительная информация..."></textarea>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn primary" id="saveEventBtn">Сохранить</button>
+        <button class="btn danger" id="cancelEventBtn">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'meeting_calendar_data_v2';
+    const EVENTS_KEY = 'calendar_events';
+    const THEME_KEY = 'calendar_theme';
+
+    const people = [
+      { name: 'Алина', color: '#ec4899' },
+      { name: 'Женя', color: '#facc15' },
+      { name: 'Алсу', color: '#8b5cf6' },
+      { name: 'Катя', color: '#60a5fa' },
+      { name: 'Маша', color: '#f97316' }
+    ];
+
+    const state = {
+      records: [],
+      events: {},
+      selectedName: 'Алина',
+      month: new Date().getMonth(),
+      year: new Date().getFullYear(),
+      selectedDate: '',
+      selectedDateEnd: '',
+      modeFree: false,
+      dateMode: 'date',
+      history: [],
+      historyIndex: -1,
+      rangeStart: null,
+      rangeEnd: null,
+      showHighlights: false,
+      modalDate: null,
+      addEventMode: false
+    };
+
+    const els = {
+      nameInput: document.getElementById('nameInput'),
+      dateInput: document.getElementById('dateInput'),
+      dateToInput: document.getElementById('dateToInput'),
+      statusInput: document.getElementById('statusInput'),
+      selectBtn: document.getElementById('selectBtn'),
+      showFreeBtn: document.getElementById('showFreeBtn'),
+      clearAll: document.getElementById('clearAll'),
+      clearSelection: document.getElementById('clearSelection'),
+      undoBtn: document.getElementById('undoBtn'),
+      redoBtn: document.getElementById('redoBtn'),
+      exportCSV: document.getElementById('exportCSV'),
+      exportJSON: document.getElementById('exportJSON'),
+      prevMonth: document.getElementById('prevMonth'),
+      nextMonth: document.getElementById('nextMonth'),
+      monthTitle: document.getElementById('monthTitle'),
+      dow: document.getElementById('dow'),
+      calendar: document.getElementById('calendar'),
+      freeList: document.getElementById('freeList'),
+      maybeList: document.getElementById('maybeList'),
+      eventsList: document.getElementById('eventsList'),
+      dateModeBtn: document.getElementById('dateModeBtn'),
+      rangeModeBtn: document.getElementById('rangeModeBtn'),
+      lightThemeBtn: document.getElementById('lightThemeBtn'),
+      darkThemeBtn: document.getElementById('darkThemeBtn'),
+      eventModal: document.getElementById('eventModal'),
+      modalDate: document.getElementById('modalDate'),
+      eventTitleInput: document.getElementById('eventTitleInput'),
+      eventTimeInput: document.getElementById('eventTimeInput'),
+      eventCommentInput: document.getElementById('eventCommentInput'),
+      saveEventBtn: document.getElementById('saveEventBtn'),
+      cancelEventBtn: document.getElementById('cancelEventBtn'),
+      addEventModeBtn: document.getElementById('addEventModeBtn'),
+      modeIndicator: document.getElementById('modeIndicator'),
+      calendarHint: document.getElementById('calendarHint')
+    };
+
+    const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+    function pad(n) { return String(n).padStart(2, '0'); }
+
+    function todayISO() {
+      const d = new Date();
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    function formatDateDDMMYY(iso) {
+      const parts = iso.split('-');
+      return `${parts[2]}-${parts[1]}-${parts[0].slice(2)}`;
+    }
+
+    function formatDateReadable(iso) {
+      const d = toDate(iso);
+      return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+
+    function toDate(iso) { return new Date(iso + 'T00:00:00'); }
+
+    function toISO(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+
+    function addDays(iso, days) {
+      const d = toDate(iso);
+      d.setDate(d.getDate() + days);
+      return toISO(d);
+    }
+
+    function isToday(iso) {
+      return iso === todayISO();
+    }
+
+    function isPast(iso) {
+      return iso < todayISO();
+    }
+
+    function loadEvents() {
+      const raw = localStorage.getItem(EVENTS_KEY);
+      state.events = raw ? JSON.parse(raw) : {};
+    }
+
+    function saveEvents() {
+      localStorage.setItem(EVENTS_KEY, JSON.stringify(state.events));
+    }
+
+    function loadTheme() {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
+        updateThemeButtons(saved);
+      }
+    }
+
+    function saveTheme(theme) {
+      localStorage.setItem(THEME_KEY, theme);
+      document.documentElement.setAttribute('data-theme', theme);
+      updateThemeButtons(theme);
+    }
+
+    function updateThemeButtons(theme) {
+      if (theme === 'dark') {
+        els.lightThemeBtn.classList.remove('active');
+        els.darkThemeBtn.classList.add('active');
+      } else {
+        els.darkThemeBtn.classList.remove('active');
+        els.lightThemeBtn.classList.add('active');
+      }
+    }
+
+    function load() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      state.records = raw ? JSON.parse(raw) : [];
+      loadEvents();
+      if (state.history.length === 0) {
+        state.history.push(JSON.stringify(state.records));
+        state.historyIndex = 0;
+      }
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
+      saveEvents();
+    }
+
+    function getColor(name) {
+      return (people.find(p => p.name === name) || people[0]).color;
+    }
+
+    function getStatusClass(status) {
+      return status === 'занято' ? 'busy' : status === 'свободно' ? 'free' : 'maybe';
+    }
+
+    function pushHistory() {
+      const snapshot = JSON.stringify(state.records);
+      state.history = state.history.slice(0, state.historyIndex + 1);
+      state.history.push(snapshot);
+      state.historyIndex = state.history.length - 1;
+      if (state.history.length > 100) {
+        state.history.shift();
+        state.historyIndex--;
+      }
+    }
+
+    function undo() {
+      if (state.historyIndex <= 0) {
+        alert('Нет действий для отмены');
+        return;
+      }
+      state.historyIndex--;
+      state.records = JSON.parse(state.history[state.historyIndex]);
+      save();
+      renderAll();
+    }
+
+    function redo() {
+      if (state.historyIndex >= state.history.length - 1) {
+        alert('Нет действий для повтора');
+        return;
+      }
+      state.historyIndex++;
+      state.records = JSON.parse(state.history[state.historyIndex]);
+      save();
+      renderAll();
+    }
+
+    function renderDOW() {
+      els.dow.innerHTML = dayNames.map(d => `<div class="dow">${d}</div>`).join('');
+    }
+
+    function monthLabel() {
+      return new Date(state.year, state.month, 1).toLocaleDateString('ru-RU', { month: 'long', year: 'numeric' });
+    }
+
+    function upsertRange(name, status, start, end) {
+      if (!start) return;
+      if (!end) end = start;
+      if (end < start)[start, end] = [end, start];
+
+      let cur = start;
+      while (cur <= end) {
+        if (isPast(cur)) {
+          alert('Нельзя выбирать прошедшие даты');
+          return;
+        }
+        cur = addDays(cur, 1);
+      }
+
+      pushHistory();
+
+      cur = start;
+      const color = getColor(name);
+      while (cur <= end) {
+        const idx = state.records.findIndex(r => r.date === cur && r.name === name);
+        const row = { date: cur, name, color, status };
+        if (idx >= 0) state.records[idx] = row;
+        else state.records.push(row);
+        cur = addDays(cur, 1);
+      }
+    }
+
+    function recordsForDate(date) {
+      return state.records.filter(r => r.date === date);
+    }
+
+    function clearSelectionForName(name, start, end) {
+      if (!start) return;
+      if (!end) end = start;
+      if (end < start)[start, end] = [end, start];
+
+      pushHistory();
+
+      let cur = start;
+      while (cur <= end) {
+        state.records = state.records.filter(r => !(r.date === cur && r.name === name));
+        cur = addDays(cur, 1);
+      }
+    }
+
+    function getFreeDaysForMonth() {
+      const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+      const result = [];
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = `${state.year}-${pad(state.month + 1)}-${pad(day)}`;
+        const dayRecords = recordsForDate(date);
+        const allFree = people.every(p => {
+          const r = dayRecords.find(x => x.name === p.name);
+          return r && r.status === 'свободно';
+        });
+        if (allFree) result.push(date);
+      }
+      return result;
+    }
+
+    function getMaybeDaysForMonth() {
+      const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+      const result = [];
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = `${state.year}-${pad(state.month + 1)}-${pad(day)}`;
+        const dayRecords = recordsForDate(date);
+
+        const allHaveStatus = people.every(p => {
+          return dayRecords.some(r => r.name === p.name);
+        });
+        if (!allHaveStatus) continue;
+
+        let maybeCount = 0;
+        let freeCount = 0;
+        let busyCount = 0;
+
+        people.forEach(p => {
+          const r = dayRecords.find(x => x.name === p.name);
+          if (r) {
+            if (r.status === 'под вопросом') maybeCount++;
+            else if (r.status === 'свободно') freeCount++;
+            else if (r.status === 'занято') busyCount++;
+          }
+        });
+
+        const isMaybe = (busyCount === 0) && (maybeCount >= 1 && maybeCount <= 2) && (freeCount + maybeCount === people.length);
+
+        if (isMaybe) result.push(date);
+      }
+      return result;
+    }
+
+    function renderEventsList() {
+      const dates = Object.keys(state.events);
+      if (dates.length === 0) {
+        els.eventsList.innerHTML = '<div class="empty-events">Нет добавленных событий</div>';
+        return;
+      }
+
+      dates.sort();
+
+      let html = '';
+      dates.forEach(date => {
+        const ev = state.events[date];
+        if (ev && ev.title) {
+          const timeStr = ev.time ? ` 🕐 ${ev.time}` : '';
+          html += `
+            <div class="event-item">
+              <div class="event-info">
+                <span class="event-title">${ev.title}</span>
+                <span class="event-details">${formatDateDDMMYY(date)}${timeStr}${ev.comment ? ' 💬 ' + ev.comment : ''}</span>
+              </div>
+              <button class="event-delete" data-date="${date}" title="Удалить событие">✕</button>
+            </div>
+          `;
+        }
+      });
+
+      els.eventsList.innerHTML = html;
+
+      els.eventsList.querySelectorAll('.event-delete').forEach(btn => {
+        btn.onclick = () => {
+          const date = btn.dataset.date;
+          if (confirm(`Удалить событие "${state.events[date]?.title || ''}"?`)) {
+            deleteEventForDate(date);
+          }
+        };
+      });
+    }
+
+    function renderCalendar() {
+      els.calendar.innerHTML = '';
+      els.monthTitle.textContent = monthLabel();
+      const first = new Date(state.year, state.month, 1);
+      const startDay = (first.getDay() + 6) % 7;
+      const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+      const prevDays = new Date(state.year, state.month, 0).getDate();
+
+      const freeDays = state.showHighlights ? getFreeDaysForMonth() : [];
+      const maybeDays = state.showHighlights ? getMaybeDaysForMonth() : [];
+
+      for (let i = 0; i < startDay; i++) {
+        const num = prevDays - startDay + i + 1;
+        const div = document.createElement('div');
+        div.className = 'day muted';
+        div.innerHTML = `<div class="date-num">${num}</div>`;
+        els.calendar.appendChild(div);
+      }
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = `${state.year}-${pad(state.month + 1)}-${pad(day)}`;
+        const items = recordsForDate(date);
+        const div = document.createElement('div');
+
+        let className = 'day';
+        const isTodayDate = isToday(date);
+        const isPastDate = isPast(date);
+        const hasEvent = state.events[date] && state.events[date].title;
+
+        if (isPastDate) className += ' past';
+        if (isTodayDate) className += ' today';
+        if (state.selectedDate === date) className += ' selected';
+        if (hasEvent) className += ' has-event';
+        
+        // Highlight if in add event mode and not past
+        if (state.addEventMode && !isPastDate) {
+          className += ' selectable';
+          if (state.selectedDate === date) className += ' select-mode-highlight';
+        }
+
+        if (state.dateMode === 'range' && state.rangeStart && state.rangeEnd) {
+          if (date === state.rangeStart) className += ' range-start';
+          else if (date === state.rangeEnd) className += ' range-end';
+          else if (date > state.rangeStart && date < state.rangeEnd) className += ' range-middle';
+        }
+
+        if (state.showHighlights) {
+          if (freeDays.includes(date)) className += ' free-highlight';
+          else if (maybeDays.includes(date)) className += ' maybe-highlight';
+        }
+
+        div.className = className;
+        div.onclick = () => {
+          if (isPastDate) {
+            alert('Нельзя выбирать прошедшие даты');
+            return;
+          }
+          
+          if (state.addEventMode) {
+            // In add event mode - open modal for this date
+            openEventModal(date);
+          } else {
+            // Normal mode - select date for status
+            if (state.dateMode === 'date') {
+              state.selectedDate = date;
+              els.dateInput.value = date;
+              els.dateToInput.value = date;
+              state.rangeStart = null;
+              state.rangeEnd = null;
+              renderCalendar();
+            } else {
+              if (!state.rangeStart || (state.rangeStart && state.rangeEnd)) {
+                state.rangeStart = date;
+                state.rangeEnd = null;
+                els.dateInput.value = date;
+                els.dateToInput.value = '';
+              } else {
+                if (date < state.rangeStart) {
+                  state.rangeEnd = state.rangeStart;
+                  state.rangeStart = date;
+                } else {
+                  state.rangeEnd = date;
+                }
+                els.dateInput.value = state.rangeStart;
+                els.dateToInput.value = state.rangeEnd;
+              }
+              renderCalendar();
+            }
+          }
+        };
+
+        let html = `<div class="date-num">${day}</div><div class="mini">`;
+
+        if (state.events[date] && state.events[date].title) {
+          const ev = state.events[date];
+          let timeStr = ev.time ? ` 🕐 ${ev.time}` : '';
+          html += `<div class="tag event" style="background:#4f46e5;color:#fff;">
+            <span>📌 ${ev.title}${timeStr}</span>
+          </div>`;
+        }
+
+        if (items.length) {
+          items.forEach(r => {
+            html += `<div class="tag ${r.status.replace(/\s+/g, '-')}" style="background:${r.color}">
+              <span>${r.name}</span><small>${r.status}</small>
+            </div>`;
+          });
+        } else if (!state.events[date] || !state.events[date].title) {
+          html += `<div class="muted small">Пусто</div>`;
+        }
+        html += `</div>`;
+        div.innerHTML = html;
+        els.calendar.appendChild(div);
+      }
+    }
+
+    function freeDays() {
+      const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+      const result = [];
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = `${state.year}-${pad(state.month + 1)}-${pad(day)}`;
+        const dayRecords = recordsForDate(date);
+        const allFree = people.every(p => {
+          const r = dayRecords.find(x => x.name === p.name);
+          return r && r.status === 'свободно';
+        });
+        if (allFree) result.push(date);
+      }
+      return result;
+    }
+
+    function maybeDays() {
+      const daysInMonth = new Date(state.year, state.month + 1, 0).getDate();
+      const result = [];
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = `${state.year}-${pad(state.month + 1)}-${pad(day)}`;
+        const dayRecords = recordsForDate(date);
+
+        const allHaveStatus = people.every(p => {
+          return dayRecords.some(r => r.name === p.name);
+        });
+        if (!allHaveStatus) continue;
+
+        let maybeCount = 0;
+        let freeCount = 0;
+        let busyCount = 0;
+
+        people.forEach(p => {
+          const r = dayRecords.find(x => x.name === p.name);
+          if (r) {
+            if (r.status === 'под вопросом') maybeCount++;
+            else if (r.status === 'свободно') freeCount++;
+            else if (r.status === 'занято') busyCount++;
+          }
+        });
+
+        const isMaybe = (busyCount === 0) && (maybeCount >= 1 && maybeCount <= 2) && (freeCount + maybeCount === people.length);
+
+        if (isMaybe) result.push(date);
+      }
+      return result;
+    }
+
+    function renderLists() {
+      const free = freeDays();
+      const maybe = maybeDays();
+      els.freeList.innerHTML = free.length ?
+        free.map(d => `<div class="free-day">${formatDateDDMMYY(d)}</div>`).join('') :
+        '<div class="muted small">Нет общих свободных дней.</div>';
+      els.maybeList.innerHTML = maybe.length ?
+        maybe.map(d => `<div class="free-day" style="background:#fffbeb;border-color:#fde68a;color:#92400e;">${formatDateDDMMYY(d)}</div>`).join('') :
+        '<div class="muted small">Нет дней со статусом «под вопросом».</div>';
+      
+      renderEventsList();
+    }
+
+    function renderAll() {
+      renderDOW();
+      renderCalendar();
+      renderLists();
+      save();
+    }
+
+    function updateDateMode(mode) {
+      state.dateMode = mode;
+      if (mode === 'date') {
+        els.dateModeBtn.className = 'btn active';
+        els.rangeModeBtn.className = 'btn';
+        els.dateToInput.disabled = true;
+        els.dateToInput.value = els.dateInput.value;
+        state.rangeStart = null;
+        state.rangeEnd = null;
+      } else {
+        els.rangeModeBtn.className = 'btn active';
+        els.dateModeBtn.className = 'btn';
+        els.dateToInput.disabled = false;
+      }
+      renderCalendar();
+    }
+
+    function exportData(type) {
+      const data = JSON.stringify(state.records, null, 2);
+      if (type === 'json') {
+        const blob = new Blob([data], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'calendar_meetings.json';
+        a.click();
+        return;
+      }
+      const csv = ['date,name,color,status', ...state.records.map(r => `${r.date},${r.name},${r.color},${r.status}`)].join(
+        '\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'calendar_meetings.csv';
+      a.click();
+    }
+
+    // --- Event Modal Functions ---
+    function openEventModal(date) {
+      state.modalDate = date;
+      els.modalDate.textContent = `Дата: ${formatDateReadable(date)}`;
+      
+      const existing = state.events[date] || {};
+      els.eventTitleInput.value = existing.title || '';
+      els.eventTimeInput.value = existing.time || '';
+      els.eventCommentInput.value = existing.comment || '';
+      
+      els.eventModal.classList.add('active');
+    }
+
+    function closeEventModal() {
+      els.eventModal.classList.remove('active');
+      state.modalDate = null;
+    }
+
+    function saveEvent() {
+      const date = state.modalDate;
+      if (!date) return;
+
+      const title = els.eventTitleInput.value.trim();
+      if (!title) {
+        alert('Пожалуйста, введите название события');
+        return;
+      }
+
+      const time = els.eventTimeInput.value;
+      const comment = els.eventCommentInput.value.trim();
+
+      state.events[date] = {
+        title: title,
+        time: time,
+        comment: comment
+      };
+
+      saveEvents();
+      // Exit add event mode after saving
+      exitAddEventMode();
+      renderAll();
+      closeEventModal();
+    }
+
+    function deleteEventForDate(date) {
+      if (state.events[date]) {
+        delete state.events[date];
+        saveEvents();
+        renderAll();
+      }
+    }
+
+    // --- Add Event Mode ---
+    function enterAddEventMode() {
+      state.addEventMode = true;
+      els.addEventModeBtn.classList.add('active-mode');
+      els.addEventModeBtn.textContent = '📌 Выйти из режима';
+      els.modeIndicator.style.display = 'block';
+      els.calendarHint.textContent = '🔵 Режим добавления события — кликните по дате';
+      renderCalendar();
+    }
+
+    function exitAddEventMode() {
+      state.addEventMode = false;
+      els.addEventModeBtn.classList.remove('active-mode');
+      els.addEventModeBtn.textContent = '📌 Добавить событие';
+      els.modeIndicator.style.display = 'none';
+      els.calendarHint.textContent = 'Клик по дате для выбора';
+      renderCalendar();
+    }
+
+    function toggleAddEventMode() {
+      if (state.addEventMode) {
+        exitAddEventMode();
+      } else {
+        enterAddEventMode();
+      }
+    }
+
+    // --- Event Handlers ---
+    els.saveEventBtn.onclick = saveEvent;
+    els.cancelEventBtn.onclick = () => {
+      closeEventModal();
+      // Don't exit mode, user might want to add more events
+    };
+
+    els.eventModal.onclick = (e) => {
+      if (e.target === els.eventModal) {
+        closeEventModal();
+      }
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeEventModal();
+        if (state.addEventMode) {
+          exitAddEventMode();
+        }
+      }
+    });
+
+    // --- Theme handlers ---
+    els.lightThemeBtn.onclick = () => saveTheme('light');
+    els.darkThemeBtn.onclick = () => saveTheme('dark');
+
+    // --- Other event handlers ---
+    els.nameInput.onchange = () => {
+      state.selectedName = els.nameInput.value;
+    };
+    els.statusInput.onchange = () => {};
+
+    els.selectBtn.onclick = () => {
+      // Exit add event mode if active
+      if (state.addEventMode) exitAddEventMode();
+      
+      const name = els.nameInput.value;
+      const status = els.statusInput.value;
+      const start = els.dateInput.value;
+      const end = state.dateMode === 'range' ? (els.dateToInput.value || start) : start;
+      if (!name || !start) return alert('Выберите имя и дату');
+
+      if (isPast(start) || (end && isPast(end))) {
+        alert('Нельзя выбирать прошедшие даты');
+        return;
+      }
+
+      upsertRange(name, status, start, end);
+      save();
+      renderAll();
+    };
+
+    els.showFreeBtn.onclick = () => {
+      state.showHighlights = !state.showHighlights;
+      els.showFreeBtn.textContent = state.showHighlights ? 'Скрыть подсветку' : 'Посмотреть свободные дни';
+      renderCalendar();
+    };
+
+    els.addEventModeBtn.onclick = toggleAddEventMode;
+
+    els.clearSelection.onclick = () => {
+      // Exit add event mode if active
+      if (state.addEventMode) exitAddEventMode();
+      
+      const name = els.nameInput.value;
+      const start = els.dateInput.value;
+      const end = state.dateMode === 'range' ? (els.dateToInput.value || start) : start;
+      if (!start) return alert('Выберите дату');
+      clearSelectionForName(name, start, end);
+      save();
+      renderAll();
+    };
+
+    els.clearAll.onclick = () => {
+      if (confirm('Очистить все данные?')) {
+        pushHistory();
+        state.records = [];
+        state.events = {};
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(EVENTS_KEY);
+        if (state.addEventMode) exitAddEventMode();
+        renderAll();
+      }
+    };
+
+    els.undoBtn.onclick = undo;
+    els.redoBtn.onclick = redo;
+
+    els.exportCSV.onclick = () => exportData('csv');
+    els.exportJSON.onclick = () => exportData('json');
+
+    els.prevMonth.onclick = () => {
+      state.month--;
+      if (state.month < 0) { state.month = 11;
+        state.year--; }
+      renderAll();
+    };
+    els.nextMonth.onclick = () => {
+      state.month++;
+      if (state.month > 11) { state.month = 0;
+        state.year++; }
+      renderAll();
+    };
+
+    els.dateModeBtn.onclick = () => {
+      updateDateMode('date');
+      els.dateToInput.value = els.dateInput.value;
+    };
+    els.rangeModeBtn.onclick = () => {
+      updateDateMode('range');
+    };
+
+    // --- Initialize ---
+    loadTheme();
+    load();
+    const t = todayISO();
+    els.dateInput.value = t;
+    els.dateToInput.value = t;
+    els.nameInput.value = 'Алина';
+    state.selectedName = 'Алина';
+    state.selectedDate = t;
+    updateDateMode('date');
+    renderAll();
+  </script>
+</body>
+</html>
