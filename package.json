@@ -1,0 +1,11 @@
+{
+  "name": "calendar_of_meetings",
+  "version": "1.0.0",
+  "description": "Календарь встреч",
+  "scripts": {
+    "start": "npx serve -s . -l $PORT"
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  }
+}
