@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Календарь встреч",
   "scripts": {
-    "start": "serve -s . -l $PORT --single calendar.html"
+    "start": "serve -s . -l $PORT"
   },
   "dependencies": {
     "serve": "^14.2.0"
