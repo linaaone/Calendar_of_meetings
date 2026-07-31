@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "Календарь встреч",
   "scripts": {
-    "start": "npx serve -s . -l $PORT"
+    "start": "serve -s . -l $PORT --single calendar.html"
   },
   "dependencies": {
     "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
